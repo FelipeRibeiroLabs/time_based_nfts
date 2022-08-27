@@ -1,10 +1,13 @@
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import React, { useState, useEffect } from "react";
 import * as fcl from "@onflow/fcl";
 import "../flow/config.js";
 import { MINT_TIME } from "../flow/cadence/transactions/mintTime";
+import ActionBox from "../components/ActionBox";
+import ExpiredList from "../components/ExpiredList";
+import TotalSupply from "../components/TotalSupply";
+import NotExpiredList from "../components/NotExpiredList";
 
 export default function Home() {
   const [User, setUser] = useState();
@@ -14,11 +17,11 @@ export default function Home() {
     fcl.authenticate();
   }, []);
 
-  const handleMint = async () => {
+  const handleMint = async (hour) => {
 try {
   const txid = await fcl.mutate({
     cadence: MINT_TIME,
-    args: (arg, t) => [arg("n1", t.String), arg("n2", t.String), arg("n3", t.String), arg("n4", t.String)],
+    args: (arg, t) => [arg("n1", t.String), arg("n2", t.String), arg("n3", t.String), arg("n4", t.String), arg(hour, t.UInt64)],
 
     limit: 999,
   });
@@ -31,11 +34,8 @@ try {
 
 } catch (error) {
   console.log(error);
+} 
 }
-  
-}
-
-    
 
   return (
     <div className={styles.container}>
@@ -50,38 +50,14 @@ try {
         <p className={styles.description}>
          {User && User.addr}
         </p>
+        <TotalSupply />
 
-        <div className={styles.grid}>
-          <div href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Get Non Expired NFTs</h2>
-            <p>Description of the function</p>
-          </div>
+        <ActionBox title="Mint NFT" fn={handleMint} />
 
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Get Expired NFTs</h2>
-            <p>Description of the function</p>
-          </a>
-          <div onClick={handleMint} className={styles.card}>
-            <h2>Mint NFT </h2>
-          </div>
-        </div>
+        <ExpiredList />
+        <NotExpiredList />
+
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
   );
 }
