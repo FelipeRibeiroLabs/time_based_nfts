@@ -1,8 +1,42 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
+import React, { useState, useEffect } from "react";
+import * as fcl from "@onflow/fcl";
+import "../flow/config.js";
+import { MINT_TIME } from "../flow/cadence/transactions/mintTime";
 
 export default function Home() {
+  const [User, setUser] = useState();
+
+  useEffect(() => {
+    fcl.currentUser.subscribe(setUser);
+    fcl.authenticate();
+  }, []);
+
+  const handleMint = async () => {
+try {
+  const txid = await fcl.mutate({
+    cadence: MINT_TIME,
+    args: (arg, t) => [arg("n1", t.String), arg("n2", t.String), arg("n3", t.String), arg("n4", t.String)],
+
+    limit: 999,
+  });
+
+  fcl.tx(txid).subscribe(({ status }) => {
+    console.log("status", status);
+  });
+
+  console.log("txid", txid);
+
+} catch (error) {
+  console.log(error);
+}
+  
+}
+
+    
+
   return (
     <div className={styles.container}>
       <Head>
@@ -12,43 +46,27 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
+        <h1 className={styles.title}>Conditional NFTs</h1>
         <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
+         {User && User.addr}
         </p>
 
         <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+          <div href="https://nextjs.org/learn" className={styles.card}>
+            <h2>Get Non Expired NFTs</h2>
+            <p>Description of the function</p>
+          </div>
 
           <a
             href="https://github.com/vercel/next.js/tree/canary/examples"
             className={styles.card}
           >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
+            <h2>Get Expired NFTs</h2>
+            <p>Description of the function</p>
           </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+          <div onClick={handleMint} className={styles.card}>
+            <h2>Mint NFT </h2>
+          </div>
         </div>
       </main>
 
@@ -58,12 +76,12 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <span className={styles.logo}>
             <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
           </span>
         </a>
       </footer>
     </div>
-  )
+  );
 }
